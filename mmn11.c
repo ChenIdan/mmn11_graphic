@@ -3,6 +3,10 @@
 #include <math.h>
 #include <stdlib.h>
 
+
+#include "ft2build.h"
+#include FT_FREETYPE_H
+
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -24,10 +28,14 @@ int Width = WINDOW_WIDTH;
 
 #define PI acos(-1.0)
 
+FT_Library  library;
 
-str_box str={7.0*WINDOW_WIDTH/7.0,WINDOW_HEIGHT/10.0,WINDOW_WIDTH/7.0,WINDOW_HEIGHT/7.0,"EXIT"};
 
-Button button={7.0*WINDOW_WIDTH/8.0-20.0, WINDOW_HEIGHT/10.0 -20.0, strlen("EXIT")* 24,strlen("EXIT")* 15};
+
+
+str_box str={7.0*WINDOW_WIDTH/8.0,0,WINDOW_WIDTH/8.0,WINDOW_HEIGHT/7.0,"EXIT"};
+
+Button button={7.0*WINDOW_WIDTH/8.0-20.0, 0, strlen("EXIT")* 24,strlen("EXIT")* 15};
 
 void initGlut(int argc, char **argv);
 void Display();
@@ -50,6 +58,8 @@ void initGlut(int argc, char **argv){
 
 void Display(){
 
+	int min;
+
 	float step = 0.01;
 
 	float ang;
@@ -58,7 +68,7 @@ void Display(){
 
 	float s_x, s_y;
 
-	float b_w, b_h;
+	float b_w, b_h, b_y;
 
 	char *string;
 
@@ -74,6 +84,7 @@ void Display(){
 
 	b_w = button.w;
 	b_h = button.h;
+	b_y = button.y;
 
 
 
@@ -122,11 +133,19 @@ void Display(){
 
 	/*code for sun*/
 
-	glViewport(3*Width/4.0,3*Height/4.0, sqrt(Width*Height/25.0), sqrt(Width*Height/25.0));
+
+	if (Width<Height){
+		min = Width;
+	}
+	else{
+		min = Height;
+	}
+
+	glViewport(3*Width/4.0,3*Height/4.0, min/4.0, min/4.0);
 	glColor3f(1.0f,1.0f, 0.0f);
 	glBegin(GL_POLYGON);
 	for (ang=-1; ang<=1; ang = ang+step){
-		glVertex2f(cos(ang*PI), sin(ang*PI));
+		glVertex2f(0.55*cos(ang*PI), 0.5*sin(ang*PI));
 
 
 	}
@@ -134,8 +153,8 @@ void Display(){
 	glBegin(GL_LINES);
 	step=0.1;
 	for (ang=-1; ang<=1; ang = ang+step){
+		glVertex2f(0.5*cos(ang*PI), 0.5*sin(ang*PI));
 		glVertex2f(cos(ang*PI), sin(ang*PI));
-		glVertex2f(5*cos(ang*PI), 5*sin(ang*PI));
 
 
 		}
@@ -147,7 +166,7 @@ void Display(){
 
 	/*code for exit button*/
 
-	glViewport(s_x-20.0, s_y-20.0, b_w, b_h);
+	glViewport(s_x-20.0, b_y, b_w, b_h);
 	glColor3f(1.0,0.0,0.0);
 	glBegin(GL_QUADS);
 		glVertex2f(1.0f,1.0f);
@@ -186,12 +205,12 @@ void reshape(int winWidth, int winHeight){
 	Height = winHeight;
 
 	str.x = 7.0*Width/8.0;
-	str.y = Height/10.0;
-	str.box_w = Width/7.0;
+	str.y = 0;
+	str.box_w = Width/8.0;
 	str.box_h = Height/7.0;
 
 	button.x = str.x -20.0;
-	button.y = str.y -20.0;
+	button.y = 0;
 	button.w = strlen(str.str)*24;
 	button.h = strlen(str.str)*15;
 
@@ -231,6 +250,12 @@ void initGl(){
 
 int main(int argc, char **argv)
 {
+	int error = FT_Init_FreeType( &library );
+	if (error)
+	{
+	}
+
+
 	initGlut(argc, argv);
 	MyInit();
 	initGl();
