@@ -22,13 +22,23 @@
 int Height = WINDOW_HEIGHT;
 int Width = WINDOW_WIDTH;
 
-str_box str={4.0*WINDOW_WIDTH/5.0,WINDOW_HEIGHT/10.0,WINDOW_WIDTH/7.0,WINDOW_HEIGHT/7.0,"EXIT"};
-
-Button button={4.0*WINDOW_WIDTH/5.0-20.0, WINDOW_HEIGHT/10.0 -20.0, strlen("EXIT")* 24,strlen("EXIT")* 15};
+#define PI acos(-1.0)
 
 
+str_box str={7.0*WINDOW_WIDTH/7.0,WINDOW_HEIGHT/10.0,WINDOW_WIDTH/7.0,WINDOW_HEIGHT/7.0,"EXIT"};
 
-static int font_index=0;
+Button button={7.0*WINDOW_WIDTH/8.0-20.0, WINDOW_HEIGHT/10.0 -20.0, strlen("EXIT")* 24,strlen("EXIT")* 15};
+
+void initGlut(int argc, char **argv);
+void Display();
+void MyInit();
+void Mouse(int Button, int State, int X, int Y);
+void reshape(int winWidth, int winHeight);
+void RegisterCallbacks();
+void print_bitmap_string( char* s);
+void initGl();
+
+
 
 void initGlut(int argc, char **argv){
 	glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB);
@@ -39,13 +49,16 @@ void initGlut(int argc, char **argv){
 }
 
 void Display(){
-	int len;
+
+	float step = 0.01;
+
+	float ang;
 
 	float s_w,s_h;
 
 	float s_x, s_y;
 
-	float b_x, b_y, b_w, b_h;
+	float b_w, b_h;
 
 	char *string;
 
@@ -58,8 +71,6 @@ void Display(){
 	s_w = str.box_w;
 	s_h = str.box_h;
 
-	b_x = button.x;
-	b_y = button.y;
 
 	b_w = button.w;
 	b_h = button.h;
@@ -69,6 +80,70 @@ void Display(){
 
 
 	glClear(GL_COLOR_BUFFER_BIT);
+	/*code for grass*/
+	glViewport(0.0,0.0, Width, Height/3.0);
+	glColor3f(0.0,1.0,0.0);
+	glBegin(GL_QUADS);
+			glVertex2f(1.0f,1.0f);
+			glVertex2f(-1.0f,1.0f);
+			glVertex2f(-1.0f,-1.0f);
+			glVertex2f(1.0f,-1.0f);
+	glEnd();
+
+	/*code for sky*/
+	glViewport(0.0,Height/3.0, Width, 2*Height/3.0);
+	glColor3f(0.0,0.0,1.0);
+	glBegin(GL_QUADS);
+			glVertex2f(1.0f,1.0f);
+			glVertex2f(-1.0f,1.0f);
+			glVertex2f(-1.0f,-1.0f);
+			glVertex2f(1.0f,-1.0f);
+	glEnd();
+
+	/*code for house*/
+
+	glViewport(Width/3.0,Height/3.0, Width/5.0, Height/3.0);
+	glColor3f(0.647059f, 0.164706f, 0.164706f);
+	glBegin(GL_QUADS);
+			glVertex2f(1.0f,1.0f);
+			glVertex2f(-1.0f,1.0f);
+			glVertex2f(-1.0f,-1.0f);
+			glVertex2f(1.0f,-1.0f);
+	glEnd();
+
+	/*code for roof*/
+	glViewport(Width/3.5,2*Height/3.0, Width/3.0, Height/5.0);
+	glColor3f(1.0f,0.0f, 0.0f);
+	glBegin(GL_TRIANGLES);
+			glVertex2f(-1.0f,-1.0f);
+			glVertex2f(1.0f,-1.0f);
+			glVertex2f(0.0f,0.0f);
+	glEnd();
+
+	/*code for sun*/
+
+	glViewport(3*Width/4.0,3*Height/4.0, sqrt(Width*Height/25.0), sqrt(Width*Height/25.0));
+	glColor3f(1.0f,1.0f, 0.0f);
+	glBegin(GL_POLYGON);
+	for (ang=-1; ang<=1; ang = ang+step){
+		glVertex2f(cos(ang*PI), sin(ang*PI));
+
+
+	}
+	glEnd();
+	glBegin(GL_LINES);
+	step=0.1;
+	for (ang=-1; ang<=1; ang = ang+step){
+		glVertex2f(cos(ang*PI), sin(ang*PI));
+		glVertex2f(5*cos(ang*PI), 5*sin(ang*PI));
+
+
+		}
+
+
+	glEnd();
+
+
 
 	/*code for exit button*/
 
@@ -83,8 +158,7 @@ void Display(){
 	glViewport(s_x, s_y, s_w, s_h);
 	glColor4f(0.0, 0.0, 0.0, 0.0);
 	glRasterPos2f(-1.0f,-1.0f);
-	print_bitmap_string("EXIT");
-
+	print_bitmap_string(string);
 
 
 	glFlush();
@@ -96,11 +170,10 @@ void MyInit(){
 }
 
 void Mouse(int Button, int State, int X, int Y){
-	printf("mouse clicked\n");
 	Y = Height - Y;
 	if (Button ==GLUT_LEFT_BUTTON && State == GLUT_DOWN
-			&& button.x<=X&&X<=button.x+button.w&&button.y<=Y&&Y<=button.y+button.h){
-		printf("in button\n");
+			&& button.x<=X&&X<=button.x+button.w
+				&&button.y<=Y&&Y<=button.y+button.h){
 		exit(EXIT_SUCCESS);
 
 	}
@@ -112,7 +185,7 @@ void reshape(int winWidth, int winHeight){
 	Width = winWidth;
 	Height = winHeight;
 
-	str.x = 4.0*Width/5.0;
+	str.x = 7.0*Width/8.0;
 	str.y = Height/10.0;
 	str.box_w = Width/7.0;
 	str.box_h = Height/7.0;
@@ -132,7 +205,7 @@ void RegisterCallbacks(){
 }
 
 
-void print_bitmap_string(/*void* font,*/ char* s)
+void print_bitmap_string( char* s)
 {
 
       while (*s) {
@@ -150,73 +223,11 @@ void initGl(){
 
 
 
-void my_reshape(int w, int h)
-{
-   GLdouble size;
-   GLdouble aspect;
-
-   /* Use the whole window. */
-   glViewport(0, 0, w, h);
-
-   /* We are going to do some 2-D orthographic drawing. */
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-   size = (GLdouble)((w >= h) ? w : h) / 2.0;
-   if (w <= h) {
-      aspect = (GLdouble)h/(GLdouble)w;
-      glOrtho(-size, size, -size*aspect, size*aspect, -100000.0, 100000.0);
-   }
-   else {
-      aspect = (GLdouble)w/(GLdouble)h;
-      glOrtho(-size*aspect, size*aspect, -size, size, -100000.0, 100000.0);
-   }
-
-   /* Make the world and window coordinates coincide so that 1.0 in */
-   /* model space equals one pixel in window space.                 */
-   glScaled(aspect, aspect, 1.0);
-
-   /* Now determine where to draw things. */
-   glMatrixMode(GL_MODELVIEW);
-   glLoadIdentity();
-
-}
-
-
-void draw_stuff()
-{
-   char* bitmap_font_names[7] = {"This is my firs text"};
-
-   GLfloat x, y, ystep, yild, stroke_scale;
-
-   /* Draw the strings, according to the current mode and font. */
-   glTranslatef(0.5,-1.0,0);
-   glColor4f(1.0, 1.0, 0.0, 0.0);
-   x = -225.0;
-   y = 70.0;
-   ystep  = 100.0;
-   yild   = 20.0;
-      glRasterPos2f(-150, y+1.25*yild);
-     print_bitmap_string(bitmap_font_names[0]);
-}
 
 
 
-void my_display(void)
-{
-   glClear(GL_COLOR_BUFFER_BIT);
-   draw_stuff();
 
-    glBegin(GL_POLYGON);
-    glColor3f(1.0,0.5,1.0);
 
-        glVertex3f(0.5f, 0.0f, -4.0f);
-        glVertex3f(1.0f, 0.5f, -4.0f);
-        glVertex3f(0.5f, 0.5f, -4.0f);
-
-   glEnd();
-
-   glutSwapBuffers();
-}
 
 int main(int argc, char **argv)
 {
@@ -226,13 +237,6 @@ int main(int argc, char **argv)
 	RegisterCallbacks();
 	glutMainLoop();
 
-   /*glutInitWindowSize(500, 250);
-   glutInit(&argc, argv);
-   glutInitDisplayMode(GLUT_RGB|GLUT_DOUBLE);
-   glutCreateWindow("GLUT fonts");
-   glutDisplayFunc(my_display);
-   glutReshapeFunc(my_reshape);
-   glutMainLoop();*/
 
    return 0;
 }
